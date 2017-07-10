@@ -60,7 +60,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         missingDir2 = testDir.file("missing-dir2")
     }
 
-    def doesNothingToTaskWithNoTaskActionAnnotations() {
+    def "does nothing to task with no task action annotations"() {
         given:
         def task = expectTaskCreated(DefaultTask)
 
@@ -68,7 +68,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         task.getActions().isEmpty()
     }
 
-    def propagatesExceptionThrownByTaskActionMethod() {
+    def "propagates exception thrown by task action method"() {
         given:
         def action = Stub(Runnable, {
             run() >> {
@@ -84,7 +84,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         thrown(RuntimeException)
     }
 
-    def createsContextualActionFoIncrementalTaskAction() {
+    def "creates contextual action fo incremental task action"() {
         given:
         def Action<IncrementalTaskInputs> action = Mock(Action)
         def task = expectTaskCreated(TaskWithIncrementalAction, action)
@@ -96,7 +96,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         1 * action.execute(_ as IncrementalTaskInputs)
     }
 
-    def cachesClassMetaInfo() {
+    def "caches class meta info"() {
         given:
         def task = expectTaskCreated(TaskWithInputFile, existingFile)
         def task2 = expectTaskCreated(TaskWithInputFile, missingFile)
@@ -195,7 +195,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         TaskWithOptionalNestedBeanWithPrivateType | 'private-bean'
     }
 
-    def validationActionSucceedsWhenSpecifiedOutputFileDoesNotExist() {
+    def "validation action succeeds when specified output file does not exist"() {
         given:
         def task = expectTaskCreated(TaskWithOutputFile, new File(testDir, "subdir/output.txt"))
 
@@ -206,7 +206,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         new File(testDir, "subdir").isDirectory()
     }
 
-    def validationActionSucceedsWhenSpecifiedOutputFilesDoesNotExist() {
+    def "validation action succeeds when specified output files does not exist"() {
         given:
         def task = expectTaskCreated(TaskWithOutputFiles, [new File(testDir, "subdir/output.txt"), new File(testDir, "subdir2/output.txt")] as List)
 
@@ -218,7 +218,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         new File(testDir, "subdir2").isDirectory()
     }
 
-    def validationActionSucceedsWhenSpecifiedOutputDirectoryDoesNotExist() {
+    def "validation action succeeds when specified output directory does not exist"() {
         given:
         def task = expectTaskCreated(TaskWithOutputDir, missingDir)
 
@@ -229,7 +229,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         task.outputDir.isDirectory()
     }
 
-    def validationActionSucceedsWhenSpecifiedOutputDirectoriesDoesNotExist() {
+    def "validation action succeeds when specified output directories does not exist"() {
         given:
         def task = expectTaskCreated(TaskWithOutputDirs, [missingDir] as List)
 
@@ -265,7 +265,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         TaskWithNestedBean  | 'bean.inputFile'
     }
 
-    def validationActionFailsWhenSpecifiedOutputFileIsADirectory() {
+    def "validation action fails when specified output file is a directory"() {
         given:
         def task = expectTaskCreated(TaskWithOutputFile, existingDir)
 
@@ -277,7 +277,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         validateException(task, e, "Cannot write to file '$task.outputFile' specified for property 'outputFile' as it is a directory.")
     }
 
-    def validationActionFailsWhenSpecifiedOutputFilesIsADirectory() {
+    def "validation action fails when specified output files is a directory"() {
         given:
         def task = expectTaskCreated(TaskWithOutputFiles, [existingDir] as List)
 
@@ -289,7 +289,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         validateException(task, e, "Cannot write to file '${task.outputFiles[0]}' specified for property 'outputFiles' as it is a directory.")
     }
 
-    def validationActionFailsWhenSpecifiedOutputFileParentIsAFile() {
+    def "validation action fails when specified output file parent is a file"() {
         given:
         def task = expectTaskCreated(TaskWithOutputFile, new File(testDir, "subdir/output.txt"))
         GFileUtils.touch(task.outputFile.getParentFile())
@@ -302,7 +302,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         validateException(task, e, "Cannot write to file '$task.outputFile' specified for property 'outputFile', as ancestor '$task.outputFile.parentFile' is not a directory.")
     }
 
-    def validationActionFailsWhenSpecifiedOutputFilesParentIsAFile() {
+    def "validation action fails when specified output files parent is a file"() {
         given:
         def task = expectTaskCreated(TaskWithOutputFiles, [new File(testDir, "subdir/output.txt")] as List)
         GFileUtils.touch(task.outputFiles.get(0).getParentFile())
@@ -315,7 +315,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         validateException(task, e, "Cannot write to file '${task.outputFiles[0]}' specified for property 'outputFiles', as ancestor '${task.outputFiles[0].parentFile}' is not a directory.")
     }
 
-    def validationActionFailsWhenOutputDirectoryIsAFile() {
+    def "validation action fails when output directory is a file"() {
         given:
         def task = expectTaskCreated(TaskWithOutputDir, existingFile)
 
@@ -327,7 +327,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         validateException(task, e, "Directory '$task.outputDir' specified for property 'outputDir' is not a directory.")
     }
 
-    def validationActionFailsWhenOutputDirectoriesIsAFile() {
+    def "validation action fails when output directories is a file"() {
         given:
         def task = expectTaskCreated(TaskWithOutputDirs, [existingFile] as List)
 
@@ -339,7 +339,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         validateException(task, e, "Directory '${task.outputDirs[0]}' specified for property 'outputDirs' is not a directory.")
     }
 
-    def validationActionFailsWhenParentOfOutputDirectoryIsAFile() {
+    def "validation action fails when parent of output directory is a file"() {
         given:
         def task = expectTaskCreated(TaskWithOutputDir, new File(testDir, "subdir/output"))
         GFileUtils.touch(task.outputDir.getParentFile())
@@ -352,7 +352,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         validateException(task, e, "Cannot write to directory '$task.outputDir' specified for property 'outputDir', as ancestor '$task.outputDir.parentFile' is not a directory.")
     }
 
-    def validationActionFailsWhenParentOfOutputDirectoriesIsAFile() {
+    def "validation action fails when parent of output directories is a file"() {
         given:
         def task = expectTaskCreated(TaskWithOutputDirs, [new File(testDir, "subdir/output")])
         GFileUtils.touch(task.outputDirs.get(0).getParentFile())
@@ -365,7 +365,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         validateException(task, e, "Cannot write to directory '${task.outputDirs[0]}' specified for property 'outputDirs', as ancestor '${task.outputDirs[0].parentFile}' is not a directory.")
     }
 
-    def validationActionFailsWhenInputDirectoryDoesNotExist() {
+    def "validation action fails when input directory does not exist"() {
         given:
         def task = expectTaskCreated(TaskWithInputDir, missingDir)
 
@@ -377,7 +377,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         validateException(task, e, "Directory '$task.inputDir' specified for property 'inputDir' does not exist.")
     }
 
-    def validationActionFailsWhenInputDirectoryIsAFile() {
+    def "validation action fails when input directory is a file"() {
         given:
         def task = expectTaskCreated(TaskWithInputDir, existingFile)
         GFileUtils.touch(task.inputDir)
@@ -390,7 +390,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         validateException(task, e, "Directory '$task.inputDir' specified for property 'inputDir' is not a directory.")
     }
 
-    def validatesNestedBeansWithPrivateType() {
+    def "validates nested beans with private type"() {
         given:
         def task = expectTaskCreated(TaskWithNestedBeanWithPrivateClass, [existingFile, null] as Object[])
 
@@ -402,7 +402,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         validateException(task, e, "No value has been specified for property 'bean.inputFile'.")
     }
 
-    def validationFailsWhenNestedBeanIsNull() {
+    def "validation fails when nested bean is null"() {
         given:
         def task = expectTaskCreated(TaskWithNestedBean, [null] as Object[])
         task.clearBean()
@@ -415,7 +415,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         validateException(task, e, "No value has been specified for property 'bean'.")
     }
 
-    def validationFailsWhenNestedBeanWithPrivateTypeIsNull() {
+    def "validation fails when nested bean with private type is null"() {
         given:
         def task = expectTaskCreated(TaskWithNestedBeanWithPrivateClass, [null, null] as Object[])
         task.clearBean()
@@ -428,7 +428,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         validateException(task, e, "No value has been specified for property 'bean'.")
     }
 
-    def canAttachAnnotationToGroovyProperty() {
+    def "can attach annotation to groovy property"() {
         given:
         def task = expectTaskCreated(InputFileTask)
 
@@ -440,7 +440,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         validateException(task, e, "No value has been specified for property 'srcFile'.")
     }
 
-    def validationFailureListsViolationsForAllProperties() {
+    def "validation failure lists violations for all properties"() {
         given:
         def task = expectTaskCreated(TaskWithMultipleProperties, [null] as Object[])
 
@@ -454,7 +454,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
             "No value has been specified for property 'bean.inputFile'.")
     }
 
-    def propertyValidationJavaBeanSpecCase() {
+    def "property validation java bean spec case"() {
         given:
         def task = expectTaskCreated(TaskWithJavaBeanCornerCaseProperties, [null, null, null, null, "a", "b"] as Object[])
 
@@ -470,7 +470,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
             "No value has been specified for property 'URL'.")
     }
 
-    def propertyValidationJavaBeanSpecSingleChar() {
+    def "property validation java bean spec single char"() {
         given:
         def task = expectTaskCreated(TaskWithJavaBeanCornerCaseProperties, ["c", "C", "d", "U", null, null] as Object[])
 
@@ -499,7 +499,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         TaskWithOutputDir  | 'outputs' | 'missingDir'
     }
 
-    def "registers specified list of inputs on TaskWithInputFiles"() {
+    def "registers specified list of inputs on  task with input files"() {
         given:
         def values = ['testDir', 'missingFile'].collect({ this[it] })
         def task = expectTaskCreated(TaskWithInputFiles, values as List)
@@ -523,7 +523,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         TaskWithOutputDirs  | ['missingDir', 'missingDir2']
     }
 
-    def registersSpecifiedInputDirectory() {
+    def "registers specified input directory"() {
         given:
         def task = expectTaskCreated(TaskWithInputDir, existingDir)
         File file = existingDir.file("some-file").createFile()
@@ -571,7 +571,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         TaskWithInputDir    | 'inputs'  | [null] as Object[]
     }
 
-    def skipsTaskWhenInputDirectoryIsEmptyAndSkipWhenEmpty() {
+    def "skips task when input directory is empty and skip when empty"() {
         given:
         def task = expectTaskCreated(BrokenTaskWithInputDir, existingDir)
 
@@ -579,7 +579,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         task.execute()
     }
 
-    def skipsTaskWhenInputFileCollectionIsEmpty() {
+    def "skips task when input file collection is empty"() {
         given:
         def inputFiles = new ArrayList<File>()
         BrokenTaskWithInputFiles task = expectTaskCreated(BrokenTaskWithInputFiles, inputFiles)
@@ -604,7 +604,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         "file creation actions"                             | TaskWithOutputFile
     }
 
-    def ignoresBridgeMethods() {
+    def "ignores bridge methods"() {
         given:
         def task = expectTaskCreated(TaskWithBridgeMethod)
 
@@ -615,7 +615,7 @@ class AnnotationProcessingTaskFactoryTest extends AbstractProjectBuilderSpec {
         task.traversedOutputsCount == 1
     }
 
-    def propertyExtractionJavaBeanSpec() {
+    def "property extraction java bean spec"() {
         given:
         def task = expectTaskCreated(TaskWithJavaBeanCornerCaseProperties, "c", "C", "d", "U", "a", "b")
 

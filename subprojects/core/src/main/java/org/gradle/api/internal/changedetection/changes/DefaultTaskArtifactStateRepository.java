@@ -72,19 +72,21 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     private class TaskArtifactStateImpl implements TaskArtifactState, TaskExecutionHistory {
         private final TaskInternal task;
         private final TaskHistoryRepository.History history;
+        private final TaskUpToDateState states;
         private boolean upToDate;
-        private TaskUpToDateState states;
         private IncrementalTaskInputsInternal taskInputs;
 
         public TaskArtifactStateImpl(TaskInternal task, TaskHistoryRepository.History history) {
             this.task = task;
             this.history = history;
+            // Calculate initial state - note this is potentially expensive
+            this.states = new TaskUpToDateState(task, history, fileCollectionSnapshotterRegistry, fileCollectionFactory, classLoaderHierarchyHasher, valueSnapshotter);
         }
 
         @Override
         public boolean isUpToDate(Collection<String> messages) {
             upToDate = true;
-            for (TaskStateChange stateChange : getStates().getAllTaskChanges()) {
+            for (TaskStateChange stateChange : states.getAllTaskChanges()) {
                 messages.add(stateChange.getMessage());
                 upToDate = false;
             }
@@ -96,7 +98,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             assert !upToDate : "Should not be here if the task is up-to-date";
 
             if (canPerformIncrementalBuild()) {
-                taskInputs = instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, getStates().getInputFilesChanges());
+                taskInputs = instantiator.newInstance(ChangesOnlyIncrementalTaskInputs.class, states.getInputFilesChanges());
             } else {
                 taskInputs = instantiator.newInstance(RebuildIncrementalTaskInputs.class, task);
             }
@@ -104,7 +106,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         private boolean canPerformIncrementalBuild() {
-            return Iterables.isEmpty(getStates().getRebuildChanges());
+            return Iterables.isEmpty(states.getRebuildChanges());
         }
 
         @Override
@@ -114,15 +116,11 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         @Override
         public OverlappingOutputs getOverlappingOutputs() {
-            // Ensure that states are created
-            getStates();
             return history.getCurrentExecution().getDetectedOverlappingOutputs();
         }
 
         @Override
         public TaskOutputCachingBuildCacheKey calculateCacheKey() {
-            // Ensure that states are created
-            getStates();
             return cacheKeyCalculator.calculate(history.getCurrentExecution());
         }
 
@@ -167,19 +165,10 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             }
 
             if (taskInputs != null) {
-                getStates().newInputs(taskInputs.getDiscoveredInputs());
+                states.newInputs(taskInputs.getDiscoveredInputs());
             }
-            getStates().getAllTaskChanges().snapshotAfterTask();
+            states.getAllTaskChanges().snapshotAfterTask();
             history.update();
         }
-
-        private TaskUpToDateState getStates() {
-            if (states == null) {
-                // Calculate initial state - note this is potentially expensive
-                states = new TaskUpToDateState(task, history, fileCollectionSnapshotterRegistry, fileCollectionFactory, classLoaderHierarchyHasher, valueSnapshotter);
-            }
-            return states;
-        }
     }
-
 }
